@@ -1,0 +1,744 @@
+
+EXPERIMENTAL:
+
+ insmod conntable_ktest.ko nr_nodes=4 nr_conns=4 nr_insert_threads=2 nr_lookup_threads=8
+
+[40580.118451] stopping stress test...
+[40581.386503] <nr_gets :107200459, hits :107200459 avg_time :1092 (ns)>
+[40581.386517] <nr_gets :91112304, hits :91112304 avg_time :1285 (ns)>
+[40581.386530] <nr_gets :113648460, hits :113648460 avg_time :1030 (ns)>
+[40581.386545] <nr_gets :91056386, hits :91056386 avg_time :1286 (ns)>
+[40581.386557] <nr_gets :115149574, hits :115149574 avg_time :1017 (ns)>
+[40581.386569] <nr_gets :111043486, hits :111043486 avg_time :1054 (ns)>
+[40581.386581] <nr_gets :98937116, hits :98937116 avg_time :1183 (ns)>
+[40581.386590] <nr_gets :91028601, hits :91028601 avg_time :1286 (ns)>
+[40581.386598] pool : (127.0.0.1:4) nr_waits :0
+[40581.386601] connection[0] nr_lookups :121178663
+[40581.386603] connection[1] nr_lookups :56496691
+[40581.386604] connection[2] nr_lookups :20989501
+[40581.386605] connection[3] nr_lookups :5269219
+[40581.386606] connection[4] nr_lookups :792818
+[40581.386607] connection[5] nr_lookups :64492
+[40581.386608] connection[6] nr_lookups :2669
+[40581.386609] connection[7] nr_lookups :46
+[40581.386611] pool : (127.0.0.1:2) nr_waits :0
+[40581.386612] connection[0] nr_lookups :122510425
+[40581.386613] connection[1] nr_lookups :56417709
+[40581.386614] connection[2] nr_lookups :20461624
+[40581.386615] connection[3] nr_lookups :4749386
+[40581.386616] connection[4] nr_lookups :613057
+[40581.386617] connection[5] nr_lookups :40545
+[40581.386618] connection[6] nr_lookups :1331
+[40581.386619] connection[7] nr_lookups :18
+[40581.386621] pool : (127.0.0.1:3) nr_waits :0
+[40581.386621] connection[0] nr_lookups :120888947
+[40581.386623] connection[1] nr_lookups :55730312
+[40581.386624] connection[2] nr_lookups :22206375
+[40581.386625] connection[3] nr_lookups :5238826
+[40581.386626] connection[4] nr_lookups :681038
+[40581.386627] connection[5] nr_lookups :46955
+[40581.386628] connection[6] nr_lookups :1626
+[40581.386629] connection[7] nr_lookups :19
+[40581.386630] pool : (127.0.0.1:1) nr_waits :0
+[40581.386631] connection[0] nr_lookups :120111109
+[40581.386632] connection[1] nr_lookups :57994453
+[40581.386633] connection[2] nr_lookups :21079870
+[40581.386634] connection[3] nr_lookups :4910696
+[40581.386635] connection[4] nr_lookups :650923
+[40581.386637] connection[5] nr_lookups :45387
+[40581.386638] connection[6] nr_lookups :1625
+[40581.386639] connection[7] nr_lookups :31
+[40581.386642] connection pool destroyed for <127.0.0.1:4>
+[40581.386644] connection pool destroyed for <127.0.0.1:2>
+[40581.386646] connection pool destroyed for <127.0.0.1:3>
+[40581.386648] connection pool destroyed for <127.0.0.1:1>
+[40581.386650] cleanup removed 32 items from table
+
+insmod conntable_ktest.ko nr_nodes=4 nr_conns=4 nr_insert_threads=2 nr_lookup_threads=8 put_delay_ms=10
+
+40818.048977] starting connection table stress test...
+[40818.048981] node entry :<127.0.0.1:1>
+[40818.048982] node entry :<127.0.0.1:2>
+[40818.048983] node entry :<127.0.0.1:3>
+[40818.048984] node entry :<127.0.0.1:4>
+[40818.048985] (4) nodes allocated
+[40818.049055] added new connection pool <127.0.0.1:4>
+[40818.049058] added new connection pool <127.0.0.1:3>
+[40818.049060] added new connection pool <127.0.0.1:2>
+[40818.049062] added new connection pool <127.0.0.1:1>
+[40818.049070] <nr_inserted :16, avg_time :1101 (ns)>
+[40818.049126] <nr_inserted :16, avg_time :809 (ns)>
+[40896.543250] stopping stress test...
+[40898.133028] <nr_gets :7280, hits :7280 avg_time :11000366 (ns)>
+[40898.141045] <nr_gets :7281, hits :7281 avg_time :10999955 (ns)>
+[40898.146007] <nr_gets :7281, hits :7281 avg_time :11000634 (ns)>
+[40898.152003] <nr_gets :7282, hits :7282 avg_time :10999945 (ns)>
+[40898.153338] RTL871X: rtw_set_ps_mode(wlp0s29u1u1) Enter 802.11 power save - WIFI-TRAFFIC_IDLE
+[40898.153357] RTL871X: rtl8188e_set_FwPwrMode_cmd: Mode=1 SmartPS=2 UAPSD=0
+[40898.162990] <nr_gets :7283, hits :7283 avg_time :10999942 (ns)>
+[40898.173991] <nr_gets :7284, hits :7284 avg_time :10999940 (ns)>
+[40898.181023] <nr_gets :7284, hits :7284 avg_time :11000904 (ns)>
+[40898.186018] <nr_gets :7285, hits :7285 avg_time :11000077 (ns)>
+[40898.186107] pool : (127.0.0.1:4) nr_waits :0
+[40898.186112] connection[0] nr_lookups :1822
+[40898.186115] connection[1] nr_lookups :1821
+[40898.186118] connection[2] nr_lookups :1821
+[40898.186120] connection[3] nr_lookups :1821
+[40898.186122] connection[4] nr_lookups :1821
+[40898.186124] connection[5] nr_lookups :1821
+[40898.186126] connection[6] nr_lookups :1821
+[40898.186128] connection[7] nr_lookups :1820
+[40898.186130] pool : (127.0.0.1:2) nr_waits :0
+[40898.186132] connection[0] nr_lookups :1821
+[40898.186135] connection[1] nr_lookups :1821
+[40898.186137] connection[2] nr_lookups :1821
+[40898.186139] connection[3] nr_lookups :1821
+[40898.186141] connection[4] nr_lookups :1820
+[40898.186143] connection[5] nr_lookups :1820
+[40898.186145] connection[6] nr_lookups :1820
+[40898.186147] connection[7] nr_lookups :1820
+[40898.186149] pool : (127.0.0.1:3) nr_waits :0
+[40898.186151] connection[0] nr_lookups :1821
+[40898.186153] connection[1] nr_lookups :1821
+[40898.186155] connection[2] nr_lookups :1821
+[40898.186157] connection[3] nr_lookups :1821
+[40898.186159] connection[4] nr_lookups :1821
+[40898.186161] connection[5] nr_lookups :1820
+[40898.186163] connection[6] nr_lookups :1820
+[40898.186165] connection[7] nr_lookups :1820
+[40898.186167] pool : (127.0.0.1:1) nr_waits :0
+[40898.186169] connection[0] nr_lookups :1821
+[40898.186171] connection[1] nr_lookups :1821
+[40898.186173] connection[2] nr_lookups :1821
+[40898.186175] connection[3] nr_lookups :1820
+[40898.186177] connection[4] nr_lookups :1820
+[40898.186180] connection[5] nr_lookups :1820
+[40898.186182] connection[6] nr_lookups :1820
+[40898.186184] connection[7] nr_lookups :1820
+[40898.186189] connection pool destroyed for <127.0.0.1:4>
+[40898.186192] connection pool destroyed for <127.0.0.1:2>
+[40898.186195] connection pool destroyed for <127.0.0.1:3>
+[40898.186198] connection pool destroyed for <127.0.0.1:1>
+[40898.186201] cleanup removed 32 items from table
+
+insmod conntable_ktest.ko nr_nodes=4 nr_conns=2 nr_insert_threads=2 nr_lookup_threads=8 put_delay_ms=10
+
+[41051.769097] starting connection table stress test...
+[41051.769105] node entry :<127.0.0.1:1>
+[41051.769109] node entry :<127.0.0.1:2>
+[41051.769112] node entry :<127.0.0.1:3>
+[41051.769115] node entry :<127.0.0.1:4>
+[41051.769117] (4) nodes allocated
+[41051.769188] added new connection pool <127.0.0.1:4>
+[41051.769194] added new connection pool <127.0.0.1:3>
+[41051.769199] added new connection pool <127.0.0.1:2>
+[41051.769201] added new connection pool <127.0.0.1:1>
+[41051.769210] <nr_inserted :8, avg_time :3432 (ns)>
+[41051.769274] <nr_inserted :8, avg_time :1528 (ns)>
+[41068.500312] RTL871X: rtw_set_ps_mode(wlp0s29u1u1) Leave 802.11 power save - WIFI-TRAFFIC_BUSY
+[41068.500321] RTL871X: rtl8188e_set_FwPwrMode_cmd: Mode=0 SmartPS=2 UAPSD=0
+[41070.504142] RTL871X: rtw_set_ps_mode(wlp0s29u1u1) Enter 802.11 power save - WIFI-TRAFFIC_IDLE
+[41070.504150] RTL871X: rtl8188e_set_FwPwrMode_cmd: Mode=1 SmartPS=2 UAPSD=0
+[41076.516265] RTL871X: rtw_set_ps_mode(wlp0s29u1u1) Leave 802.11 power save - WIFI-TRAFFIC_BUSY
+[41076.516272] RTL871X: rtl8188e_set_FwPwrMode_cmd: Mode=0 SmartPS=2 UAPSD=0
+[41078.520271] RTL871X: rtw_set_ps_mode(wlp0s29u1u1) Enter 802.11 power save - WIFI-TRAFFIC_IDLE
+[41078.520278] RTL871X: rtl8188e_set_FwPwrMode_cmd: Mode=1 SmartPS=2 UAPSD=0
+[41090.544810] RTL871X: rtw_set_ps_mode(wlp0s29u1u1) Leave 802.11 power save - WIFI-TRAFFIC_BUSY
+[41090.544820] RTL871X: rtl8188e_set_FwPwrMode_cmd: Mode=0 SmartPS=2 UAPSD=0
+[41091.904775] stopping stress test...
+[41092.548462] RTL871X: rtw_set_ps_mode(wlp0s29u1u1) Enter 802.11 power save - WIFI-TRAFFIC_IDLE
+[41092.548470] RTL871X: rtl8188e_set_FwPwrMode_cmd: Mode=1 SmartPS=2 UAPSD=0
+[41093.814108] <nr_gets :3822, hits :3822 avg_time :11000560 (ns)>
+[41093.825156] <nr_gets :3823, hits :3823 avg_time :11000555 (ns)>
+[41093.833135] <nr_gets :3824, hits :3824 avg_time :10999759 (ns)>
+[41093.838142] <nr_gets :3824, hits :3824 avg_time :11001046 (ns)>
+[41093.849133] <nr_gets :3824, hits :3824 avg_time :11003910 (ns)>
+[41093.855139] <nr_gets :3825, hits :3825 avg_time :11002598 (ns)>
+[41093.865130] <nr_gets :3825, hits :3825 avg_time :11005199 (ns)>
+[41093.873143] <nr_gets :3826, hits :3826 avg_time :11004411 (ns)>
+[41093.873198] pool : (127.0.0.1:4) nr_waits :227
+[41093.873203] connection[0] nr_lookups :1913
+[41093.873219] connection[1] nr_lookups :1913
+[41093.873221] connection[2] nr_lookups :1913
+[41093.873223] connection[3] nr_lookups :1912
+[41093.873225] pool : (127.0.0.1:2) nr_waits :242
+[41093.873227] connection[0] nr_lookups :1912
+[41093.873229] connection[1] nr_lookups :1912
+[41093.873232] connection[2] nr_lookups :1912
+[41093.873234] connection[3] nr_lookups :1911
+[41093.873236] pool : (127.0.0.1:3) nr_waits :246
+[41093.873238] connection[0] nr_lookups :1913
+[41093.873240] connection[1] nr_lookups :1912
+[41093.873242] connection[2] nr_lookups :1912
+[41093.873244] connection[3] nr_lookups :1912
+[41093.873246] pool : (127.0.0.1:1) nr_waits :236
+[41093.873248] connection[0] nr_lookups :1912
+[41093.873250] connection[1] nr_lookups :1912
+[41093.873252] connection[2] nr_lookups :1911
+[41093.873254] connection[3] nr_lookups :1911
+[41093.873258] connection pool destroyed for <127.0.0.1:4>
+[41093.873262] connection pool destroyed for <127.0.0.1:2>
+[41093.873264] connection pool destroyed for <127.0.0.1:3>
+[41093.873267] connection pool destroyed for <127.0.0.1:1>
+[41093.873270] cleanup removed 16 items from table
+
+=====================================================================================
+
+[44883.841290] stopping stress test...
+[44885.550249] <nr_gets :201468, hits :201468 avg_time :11000353 (ns)>
+[44885.560239] <nr_gets :201469, hits :201469 avg_time :11000348 (ns)>
+[44885.567246] <nr_gets :201470, hits :201470 avg_time :11000328 (ns)>
+[44885.569240] <nr_gets :201469, hits :201469 avg_time :11000392 (ns)>
+[44885.574251] <nr_gets :201470, hits :201470 avg_time :11000363 (ns)>
+[44885.579223] <nr_gets :201472, hits :201472 avg_time :11000278 (ns)>
+[44885.590216] <nr_gets :201471, hits :201471 avg_time :11000387 (ns)>
+[44885.594218] <nr_gets :201471, hits :201471 avg_time :11000407 (ns)>
+[44885.598178] <nr_gets :201472, hits :201472 avg_time :11000372 (ns)>
+[44885.603221] <nr_gets :201471, hits :201471 avg_time :11000451 (ns)>
+[44885.614225] <nr_gets :201472, hits :201472 avg_time :11000451 (ns)>
+[44885.616182] <nr_gets :201472, hits :201472 avg_time :11000461 (ns)>
+[44885.616241] pool : (127.0.0.1:10) nr_waits :0
+[44885.616245] connection[0] nr_lookups :36620
+[44885.616249] connection[1] nr_lookups :27368
+[44885.616251] connection[2] nr_lookups :19327
+[44885.616252] connection[3] nr_lookups :13023
+[44885.616254] connection[4] nr_lookups :12592
+[44885.616256] connection[5] nr_lookups :12592
+[44885.616257] connection[6] nr_lookups :12189
+[44885.616272] connection[7] nr_lookups :8622
+[44885.616273] connection[8] nr_lookups :3673
+[44885.616275] connection[9] nr_lookups :2087
+[44885.616276] connection[10] nr_lookups :1606
+[44885.616278] connection[11] nr_lookups :1405
+[44885.616280] connection[12] nr_lookups :0
+[44885.616281] connection[13] nr_lookups :0
+[44885.616283] connection[14] nr_lookups :0
+[44885.616284] connection[15] nr_lookups :0
+[44885.616286] connection[16] nr_lookups :0
+[44885.616287] connection[17] nr_lookups :0
+[44885.616289] connection[18] nr_lookups :0
+[44885.616290] connection[19] nr_lookups :0
+[44885.616292] connection[20] nr_lookups :0
+[44885.616294] connection[21] nr_lookups :0
+[44885.616295] connection[22] nr_lookups :0
+[44885.616297] connection[23] nr_lookups :0
+[44885.616298] connection[24] nr_lookups :0
+[44885.616300] connection[25] nr_lookups :0
+[44885.616301] connection[26] nr_lookups :0
+[44885.616303] connection[27] nr_lookups :0
+[44885.616305] connection[28] nr_lookups :0
+[44885.616306] connection[29] nr_lookups :0
+[44885.616308] connection[30] nr_lookups :0
+[44885.616309] connection[31] nr_lookups :0
+[44885.616311] pool : (127.0.0.1:4) nr_waits :0
+[44885.616312] connection[0] nr_lookups :36618
+[44885.616314] connection[1] nr_lookups :27388
+[44885.616315] connection[2] nr_lookups :19332
+[44885.616317] connection[3] nr_lookups :13020
+[44885.616318] connection[4] nr_lookups :12592
+[44885.616320] connection[5] nr_lookups :12591
+[44885.616321] connection[6] nr_lookups :12184
+[44885.616323] connection[7] nr_lookups :8617
+[44885.616324] connection[8] nr_lookups :3662
+[44885.616326] connection[9] nr_lookups :2086
+[44885.616327] connection[10] nr_lookups :1606
+[44885.616329] connection[11] nr_lookups :1407
+[44885.616331] connection[12] nr_lookups :0
+[44885.616332] connection[13] nr_lookups :0
+[44885.616334] connection[14] nr_lookups :0
+[44885.616335] connection[15] nr_lookups :0
+[44885.616337] connection[16] nr_lookups :0
+[44885.616338] connection[17] nr_lookups :0
+[44885.616340] connection[18] nr_lookups :0
+[44885.616342] connection[19] nr_lookups :0
+[44885.616343] connection[20] nr_lookups :0
+[44885.616345] connection[21] nr_lookups :0
+[44885.616346] connection[22] nr_lookups :0
+[44885.616348] connection[23] nr_lookups :0
+[44885.616349] connection[24] nr_lookups :0
+[44885.616351] connection[25] nr_lookups :0
+[44885.616352] connection[26] nr_lookups :0
+[44885.616354] connection[27] nr_lookups :0
+[44885.616356] connection[28] nr_lookups :0
+[44885.616357] connection[29] nr_lookups :0
+[44885.616359] connection[30] nr_lookups :0
+[44885.616360] connection[31] nr_lookups :0
+[44885.616362] pool : (127.0.0.1:9) nr_waits :0
+[44885.616363] connection[0] nr_lookups :36649
+[44885.616364] connection[1] nr_lookups :27362
+[44885.616366] connection[2] nr_lookups :19352
+[44885.616367] connection[3] nr_lookups :13032
+[44885.616369] connection[4] nr_lookups :12592
+[44885.616370] connection[5] nr_lookups :12592
+[44885.616372] connection[6] nr_lookups :12181
+[44885.616373] connection[7] nr_lookups :8617
+[44885.616375] connection[8] nr_lookups :3646
+[44885.616376] connection[9] nr_lookups :2077
+[44885.616378] connection[10] nr_lookups :1606
+[44885.616380] connection[11] nr_lookups :1398
+[44885.616381] connection[12] nr_lookups :0
+[44885.616383] connection[13] nr_lookups :0
+[44885.616384] connection[14] nr_lookups :0
+[44885.616386] connection[15] nr_lookups :0
+[44885.616387] connection[16] nr_lookups :0
+[44885.616389] connection[17] nr_lookups :0
+[44885.616390] connection[18] nr_lookups :0
+[44885.616392] connection[19] nr_lookups :0
+[44885.616393] connection[20] nr_lookups :0
+[44885.616395] connection[21] nr_lookups :0
+[44885.616396] connection[22] nr_lookups :0
+[44885.616398] connection[23] nr_lookups :0
+[44885.616399] connection[24] nr_lookups :0
+[44885.616401] connection[25] nr_lookups :0
+[44885.616403] connection[26] nr_lookups :0
+[44885.616404] connection[27] nr_lookups :0
+[44885.616406] connection[28] nr_lookups :0
+[44885.616407] connection[29] nr_lookups :0
+[44885.616409] connection[30] nr_lookups :0
+[44885.616410] connection[31] nr_lookups :0
+[44885.616412] pool : (127.0.0.1:2) nr_waits :0
+[44885.616413] connection[0] nr_lookups :36639
+[44885.616415] connection[1] nr_lookups :27374
+[44885.616416] connection[2] nr_lookups :19332
+[44885.616418] connection[3] nr_lookups :13009
+[44885.616419] connection[4] nr_lookups :12591
+[44885.616420] connection[5] nr_lookups :12591
+[44885.616422] connection[6] nr_lookups :12183
+[44885.616423] connection[7] nr_lookups :8629
+[44885.616425] connection[8] nr_lookups :3650
+[44885.616427] connection[9] nr_lookups :2092
+[44885.616428] connection[10] nr_lookups :1605
+[44885.616430] connection[11] nr_lookups :1404
+[44885.616431] connection[12] nr_lookups :0
+[44885.616433] connection[13] nr_lookups :0
+[44885.616434] connection[14] nr_lookups :0
+[44885.616436] connection[15] nr_lookups :0
+[44885.616437] connection[16] nr_lookups :0
+[44885.616439] connection[17] nr_lookups :0
+[44885.616440] connection[18] nr_lookups :0
+[44885.616442] connection[19] nr_lookups :0
+[44885.616443] connection[20] nr_lookups :0
+[44885.616445] connection[21] nr_lookups :0
+[44885.616447] connection[22] nr_lookups :0
+[44885.616448] connection[23] nr_lookups :0
+[44885.616450] connection[24] nr_lookups :0
+[44885.616451] connection[25] nr_lookups :0
+[44885.616453] connection[26] nr_lookups :0
+[44885.616454] connection[27] nr_lookups :0
+[44885.616456] connection[28] nr_lookups :0
+[44885.616457] connection[29] nr_lookups :0
+[44885.616459] connection[30] nr_lookups :0
+[44885.616460] connection[31] nr_lookups :0
+[44885.616462] pool : (127.0.0.1:3) nr_waits :0
+[44885.616463] connection[0] nr_lookups :36620
+[44885.616464] connection[1] nr_lookups :27376
+[44885.616466] connection[2] nr_lookups :19351
+[44885.616467] connection[3] nr_lookups :13019
+[44885.616469] connection[4] nr_lookups :12591
+[44885.616470] connection[5] nr_lookups :12591
+[44885.616472] connection[6] nr_lookups :12191
+[44885.616473] connection[7] nr_lookups :8620
+[44885.616475] connection[8] nr_lookups :3644
+[44885.616476] connection[9] nr_lookups :2082
+[44885.616478] connection[10] nr_lookups :1606
+[44885.616479] connection[11] nr_lookups :1410
+[44885.616481] connection[12] nr_lookups :0
+[44885.616482] connection[13] nr_lookups :0
+[44885.616484] connection[14] nr_lookups :0
+[44885.616485] connection[15] nr_lookups :0
+[44885.616487] connection[16] nr_lookups :0
+[44885.616489] connection[17] nr_lookups :0
+[44885.616490] connection[18] nr_lookups :0
+[44885.616491] connection[19] nr_lookups :0
+[44885.616493] connection[20] nr_lookups :0
+[44885.616494] connection[21] nr_lookups :0
+[44885.616496] connection[22] nr_lookups :0
+[44885.616497] connection[23] nr_lookups :0
+[44885.616499] connection[24] nr_lookups :0
+[44885.616500] connection[25] nr_lookups :0
+[44885.616502] connection[26] nr_lookups :0
+[44885.616503] connection[27] nr_lookups :0
+[44885.616505] connection[28] nr_lookups :0
+[44885.616506] connection[29] nr_lookups :0
+[44885.616508] connection[30] nr_lookups :0
+[44885.616509] connection[31] nr_lookups :0
+[44885.616511] pool : (127.0.0.1:7) nr_waits :0
+[44885.616512] connection[0] nr_lookups :36621
+[44885.616513] connection[1] nr_lookups :27355
+[44885.616515] connection[2] nr_lookups :19344
+[44885.616516] connection[3] nr_lookups :13035
+[44885.616518] connection[4] nr_lookups :12592
+[44885.616519] connection[5] nr_lookups :12592
+[44885.616521] connection[6] nr_lookups :12193
+[44885.616522] connection[7] nr_lookups :8615
+[44885.616524] connection[8] nr_lookups :3660
+[44885.616525] connection[9] nr_lookups :2084
+[44885.616527] connection[10] nr_lookups :1606
+[44885.616528] connection[11] nr_lookups :1407
+[44885.616530] connection[12] nr_lookups :0
+[44885.616531] connection[13] nr_lookups :0
+[44885.616533] connection[14] nr_lookups :0
+[44885.616534] connection[15] nr_lookups :0
+[44885.616536] connection[16] nr_lookups :0
+[44885.616537] connection[17] nr_lookups :0
+[44885.616539] connection[18] nr_lookups :0
+[44885.616540] connection[19] nr_lookups :0
+[44885.616541] connection[20] nr_lookups :0
+[44885.616543] connection[21] nr_lookups :0
+[44885.616544] connection[22] nr_lookups :0
+[44885.616546] connection[23] nr_lookups :0
+[44885.616547] connection[24] nr_lookups :0
+[44885.616549] connection[25] nr_lookups :0
+[44885.616550] connection[26] nr_lookups :0
+[44885.616552] connection[27] nr_lookups :0
+[44885.616553] connection[28] nr_lookups :0
+[44885.616555] connection[29] nr_lookups :0
+[44885.616556] connection[30] nr_lookups :0
+[44885.616558] connection[31] nr_lookups :0
+[44885.616559] pool : (127.0.0.1:13) nr_waits :0
+[44885.616561] connection[0] nr_lookups :36618
+[44885.616562] connection[1] nr_lookups :27361
+[44885.616564] connection[2] nr_lookups :19339
+[44885.616565] connection[3] nr_lookups :13031
+[44885.616567] connection[4] nr_lookups :12592
+[44885.616568] connection[5] nr_lookups :12592
+[44885.616570] connection[6] nr_lookups :12195
+[44885.616571] connection[7] nr_lookups :8624
+[44885.616573] connection[8] nr_lookups :3653
+[44885.616574] connection[9] nr_lookups :2087
+[44885.616576] connection[10] nr_lookups :1606
+[44885.616577] connection[11] nr_lookups :1406
+[44885.616579] connection[12] nr_lookups :0
+[44885.616580] connection[13] nr_lookups :0
+[44885.616582] connection[14] nr_lookups :0
+[44885.616583] connection[15] nr_lookups :0
+[44885.616585] connection[16] nr_lookups :0
+[44885.616586] connection[17] nr_lookups :0
+[44885.616588] connection[18] nr_lookups :0
+[44885.616590] connection[19] nr_lookups :0
+[44885.616591] connection[20] nr_lookups :0
+[44885.616593] connection[21] nr_lookups :0
+[44885.616594] connection[22] nr_lookups :0
+[44885.616596] connection[23] nr_lookups :0
+[44885.616597] connection[24] nr_lookups :0
+[44885.616599] connection[25] nr_lookups :0
+[44885.616600] connection[26] nr_lookups :0
+[44885.616602] connection[27] nr_lookups :0
+[44885.616603] connection[28] nr_lookups :0
+[44885.616605] connection[29] nr_lookups :0
+[44885.616606] connection[30] nr_lookups :0
+[44885.616608] connection[31] nr_lookups :0
+[44885.616609] pool : (127.0.0.1:16) nr_waits :0
+[44885.616611] connection[0] nr_lookups :36662
+[44885.616612] connection[1] nr_lookups :27390
+[44885.616614] connection[2] nr_lookups :19361
+[44885.616615] connection[3] nr_lookups :13017
+[44885.616617] connection[4] nr_lookups :12591
+[44885.616618] connection[5] nr_lookups :12591
+[44885.616620] connection[6] nr_lookups :12181
+[44885.616621] connection[7] nr_lookups :8604
+[44885.616623] connection[8] nr_lookups :3612
+[44885.616624] connection[9] nr_lookups :2075
+[44885.616626] connection[10] nr_lookups :1606
+[44885.616628] connection[11] nr_lookups :1405
+[44885.616629] connection[12] nr_lookups :0
+[44885.616631] connection[13] nr_lookups :1
+[44885.616632] connection[14] nr_lookups :0
+[44885.616633] connection[15] nr_lookups :1
+[44885.616635] connection[16] nr_lookups :0
+[44885.616637] connection[17] nr_lookups :1
+[44885.616638] connection[18] nr_lookups :0
+[44885.616640] connection[19] nr_lookups :1
+[44885.616641] connection[20] nr_lookups :0
+[44885.616643] connection[21] nr_lookups :1
+[44885.616644] connection[22] nr_lookups :0
+[44885.616646] connection[23] nr_lookups :1
+[44885.616647] connection[24] nr_lookups :1
+[44885.616649] connection[25] nr_lookups :1
+[44885.616651] connection[26] nr_lookups :0
+[44885.616652] connection[27] nr_lookups :1
+[44885.616654] connection[28] nr_lookups :0
+[44885.616655] connection[29] nr_lookups :0
+[44885.616656] connection[30] nr_lookups :0
+[44885.616658] connection[31] nr_lookups :0
+[44885.616659] pool : (127.0.0.1:12) nr_waits :0
+[44885.616661] connection[0] nr_lookups :36615
+[44885.616662] connection[1] nr_lookups :27373
+[44885.616664] connection[2] nr_lookups :19343
+[44885.616665] connection[3] nr_lookups :13026
+[44885.616667] connection[4] nr_lookups :12592
+[44885.616668] connection[5] nr_lookups :12592
+[44885.616670] connection[6] nr_lookups :12193
+[44885.616671] connection[7] nr_lookups :8616
+[44885.616673] connection[8] nr_lookups :3654
+[44885.616674] connection[9] nr_lookups :2085
+[44885.616676] connection[10] nr_lookups :1606
+[44885.616677] connection[11] nr_lookups :1409
+[44885.616678] connection[12] nr_lookups :0
+[44885.616680] connection[13] nr_lookups :0
+[44885.616681] connection[14] nr_lookups :0
+[44885.616683] connection[15] nr_lookups :0
+[44885.616685] connection[16] nr_lookups :0
+[44885.616686] connection[17] nr_lookups :0
+[44885.616688] connection[18] nr_lookups :0
+[44885.616689] connection[19] nr_lookups :0
+[44885.616691] connection[20] nr_lookups :0
+[44885.616692] connection[21] nr_lookups :0
+[44885.616694] connection[22] nr_lookups :0
+[44885.616695] connection[23] nr_lookups :0
+[44885.616697] connection[24] nr_lookups :0
+[44885.616698] connection[25] nr_lookups :0
+[44885.616699] connection[26] nr_lookups :0
+[44885.616701] connection[27] nr_lookups :0
+[44885.616702] connection[28] nr_lookups :0
+[44885.616704] connection[29] nr_lookups :0
+[44885.616705] connection[30] nr_lookups :0
+[44885.616707] connection[31] nr_lookups :0
+[44885.616708] pool : (127.0.0.1:1) nr_waits :0
+[44885.616709] connection[0] nr_lookups :36620
+[44885.616711] connection[1] nr_lookups :27373
+[44885.616712] connection[2] nr_lookups :19344
+[44885.616714] connection[3] nr_lookups :13012
+[44885.616715] connection[4] nr_lookups :12591
+[44885.616717] connection[5] nr_lookups :12591
+[44885.616718] connection[6] nr_lookups :12190
+[44885.616720] connection[7] nr_lookups :8622
+[44885.616721] connection[8] nr_lookups :3647
+[44885.616723] connection[9] nr_lookups :2091
+[44885.616724] connection[10] nr_lookups :1605
+[44885.616726] connection[11] nr_lookups :1410
+[44885.616727] connection[12] nr_lookups :0
+[44885.616729] connection[13] nr_lookups :0
+[44885.616730] connection[14] nr_lookups :0
+[44885.616732] connection[15] nr_lookups :0
+[44885.616733] connection[16] nr_lookups :0
+[44885.616735] connection[17] nr_lookups :0
+[44885.616736] connection[18] nr_lookups :0
+[44885.616737] connection[19] nr_lookups :0
+[44885.616739] connection[20] nr_lookups :0
+[44885.616740] connection[21] nr_lookups :0
+[44885.616742] connection[22] nr_lookups :0
+[44885.616743] connection[23] nr_lookups :0
+[44885.616745] connection[24] nr_lookups :0
+[44885.616746] connection[25] nr_lookups :0
+[44885.616748] connection[26] nr_lookups :0
+[44885.616749] connection[27] nr_lookups :0
+[44885.616750] connection[28] nr_lookups :0
+[44885.616752] connection[29] nr_lookups :0
+[44885.616753] connection[30] nr_lookups :0
+[44885.616755] connection[31] nr_lookups :0
+[44885.616756] pool : (127.0.0.1:5) nr_waits :0
+[44885.616758] connection[0] nr_lookups :36613
+[44885.616759] connection[1] nr_lookups :27379
+[44885.616761] connection[2] nr_lookups :19352
+[44885.616762] connection[3] nr_lookups :13019
+[44885.616763] connection[4] nr_lookups :12592
+[44885.616765] connection[5] nr_lookups :12592
+[44885.616766] connection[6] nr_lookups :12189
+[44885.616768] connection[7] nr_lookups :8615
+[44885.616769] connection[8] nr_lookups :3650
+[44885.616771] connection[9] nr_lookups :2084
+[44885.616772] connection[10] nr_lookups :1606
+[44885.616774] connection[11] nr_lookups :1413
+[44885.616775] connection[12] nr_lookups :0
+[44885.616777] connection[13] nr_lookups :0
+[44885.616778] connection[14] nr_lookups :0
+[44885.616780] connection[15] nr_lookups :0
+[44885.616781] connection[16] nr_lookups :0
+[44885.616783] connection[17] nr_lookups :0
+[44885.616784] connection[18] nr_lookups :0
+[44885.616786] connection[19] nr_lookups :0
+[44885.616787] connection[20] nr_lookups :0
+[44885.616789] connection[21] nr_lookups :0
+[44885.616790] connection[22] nr_lookups :0
+[44885.616792] connection[23] nr_lookups :0
+[44885.616793] connection[24] nr_lookups :0
+[44885.616794] connection[25] nr_lookups :0
+[44885.616796] connection[26] nr_lookups :0
+[44885.616797] connection[27] nr_lookups :0
+[44885.616799] connection[28] nr_lookups :0
+[44885.616800] connection[29] nr_lookups :0
+[44885.616802] connection[30] nr_lookups :0
+[44885.616803] connection[31] nr_lookups :0
+[44885.616805] pool : (127.0.0.1:11) nr_waits :0
+[44885.616806] connection[0] nr_lookups :36606
+[44885.616808] connection[1] nr_lookups :27377
+[44885.616809] connection[2] nr_lookups :19341
+[44885.616810] connection[3] nr_lookups :13035
+[44885.616812] connection[4] nr_lookups :12592
+[44885.616813] connection[5] nr_lookups :12592
+[44885.616815] connection[6] nr_lookups :12188
+[44885.616816] connection[7] nr_lookups :8620
+[44885.616818] connection[8] nr_lookups :3648
+[44885.616819] connection[9] nr_lookups :2091
+[44885.616821] connection[10] nr_lookups :1606
+[44885.616822] connection[11] nr_lookups :1408
+[44885.616824] connection[12] nr_lookups :0
+[44885.616825] connection[13] nr_lookups :0
+[44885.616827] connection[14] nr_lookups :0
+[44885.616828] connection[15] nr_lookups :0
+[44885.616830] connection[16] nr_lookups :0
+[44885.616831] connection[17] nr_lookups :0
+[44885.616833] connection[18] nr_lookups :0
+[44885.616834] connection[19] nr_lookups :0
+[44885.616836] connection[20] nr_lookups :0
+[44885.616837] connection[21] nr_lookups :0
+[44885.616839] connection[22] nr_lookups :0
+[44885.616840] connection[23] nr_lookups :0
+[44885.616842] connection[24] nr_lookups :0
+[44885.616843] connection[25] nr_lookups :0
+[44885.616844] connection[26] nr_lookups :0
+[44885.616846] connection[27] nr_lookups :0
+[44885.616847] connection[28] nr_lookups :0
+[44885.616849] connection[29] nr_lookups :0
+[44885.616850] connection[30] nr_lookups :0
+[44885.616852] connection[31] nr_lookups :0
+[44885.616853] pool : (127.0.0.1:15) nr_waits :0
+[44885.616855] connection[0] nr_lookups :36626
+[44885.616856] connection[1] nr_lookups :27356
+[44885.616858] connection[2] nr_lookups :19328
+[44885.616859] connection[3] nr_lookups :13011
+[44885.616860] connection[4] nr_lookups :12592
+[44885.616862] connection[5] nr_lookups :12592
+[44885.616863] connection[6] nr_lookups :12201
+[44885.616865] connection[7] nr_lookups :8622
+[44885.616866] connection[8] nr_lookups :3671
+[44885.616868] connection[9] nr_lookups :2091
+[44885.616869] connection[10] nr_lookups :1606
+[44885.616871] connection[11] nr_lookups :1408
+[44885.616872] connection[12] nr_lookups :0
+[44885.616874] connection[13] nr_lookups :0
+[44885.616875] connection[14] nr_lookups :0
+[44885.616877] connection[15] nr_lookups :0
+[44885.616878] connection[16] nr_lookups :0
+[44885.616880] connection[17] nr_lookups :0
+[44885.616881] connection[18] nr_lookups :0
+[44885.616883] connection[19] nr_lookups :0
+[44885.616884] connection[20] nr_lookups :0
+[44885.616885] connection[21] nr_lookups :0
+[44885.616887] connection[22] nr_lookups :0
+[44885.616888] connection[23] nr_lookups :0
+[44885.616890] connection[24] nr_lookups :0
+[44885.616891] connection[25] nr_lookups :0
+[44885.616893] connection[26] nr_lookups :0
+[44885.616894] connection[27] nr_lookups :0
+[44885.616896] connection[28] nr_lookups :0
+[44885.616897] connection[29] nr_lookups :0
+[44885.616899] connection[30] nr_lookups :0
+[44885.616900] connection[31] nr_lookups :0
+[44885.616901] pool : (127.0.0.1:14) nr_waits :0
+[44885.616903] connection[0] nr_lookups :36609
+[44885.616904] connection[1] nr_lookups :27359
+[44885.616906] connection[2] nr_lookups :19351
+[44885.616907] connection[3] nr_lookups :13030
+[44885.616908] connection[4] nr_lookups :12592
+[44885.616910] connection[5] nr_lookups :12592
+[44885.616911] connection[6] nr_lookups :12196
+[44885.616913] connection[7] nr_lookups :8619
+[44885.616914] connection[8] nr_lookups :3651
+[44885.616916] connection[9] nr_lookups :2087
+[44885.616917] connection[10] nr_lookups :1606
+[44885.616919] connection[11] nr_lookups :1412
+[44885.616920] connection[12] nr_lookups :0
+[44885.616922] connection[13] nr_lookups :0
+[44885.616923] connection[14] nr_lookups :0
+[44885.616925] connection[15] nr_lookups :0
+[44885.616926] connection[16] nr_lookups :0
+[44885.616928] connection[17] nr_lookups :0
+[44885.616929] connection[18] nr_lookups :0
+[44885.616930] connection[19] nr_lookups :0
+[44885.616932] connection[20] nr_lookups :0
+[44885.616933] connection[21] nr_lookups :0
+[44885.616935] connection[22] nr_lookups :0
+[44885.616936] connection[23] nr_lookups :0
+[44885.616938] connection[24] nr_lookups :0
+[44885.616939] connection[25] nr_lookups :0
+[44885.616941] connection[26] nr_lookups :0
+[44885.616942] connection[27] nr_lookups :0
+[44885.616944] connection[28] nr_lookups :0
+[44885.616945] connection[29] nr_lookups :0
+[44885.616946] connection[30] nr_lookups :0
+[44885.616948] connection[31] nr_lookups :0
+[44885.616949] pool : (127.0.0.1:8) nr_waits :0
+[44885.616951] connection[0] nr_lookups :36619
+[44885.616952] connection[1] nr_lookups :27380
+[44885.616954] connection[2] nr_lookups :19333
+[44885.616955] connection[3] nr_lookups :13036
+[44885.616956] connection[4] nr_lookups :12592
+[44885.616958] connection[5] nr_lookups :12592
+[44885.616959] connection[6] nr_lookups :12187
+[44885.616961] connection[7] nr_lookups :8619
+[44885.616962] connection[8] nr_lookups :3645
+[44885.616964] connection[9] nr_lookups :2091
+[44885.616965] connection[10] nr_lookups :1606
+[44885.616967] connection[11] nr_lookups :1404
+[44885.616968] connection[12] nr_lookups :0
+[44885.616970] connection[13] nr_lookups :0
+[44885.616971] connection[14] nr_lookups :0
+[44885.616973] connection[15] nr_lookups :0
+[44885.616974] connection[16] nr_lookups :0
+[44885.616976] connection[17] nr_lookups :0
+[44885.616977] connection[18] nr_lookups :0
+[44885.616978] connection[19] nr_lookups :0
+[44885.616980] connection[20] nr_lookups :0
+[44885.616981] connection[21] nr_lookups :0
+[44885.616983] connection[22] nr_lookups :0
+[44885.616984] connection[23] nr_lookups :0
+[44885.616986] connection[24] nr_lookups :0
+[44885.616987] connection[25] nr_lookups :0
+[44885.616988] connection[26] nr_lookups :0
+[44885.616990] connection[27] nr_lookups :0
+[44885.616991] connection[28] nr_lookups :0
+[44885.616993] connection[29] nr_lookups :0
+[44885.616994] connection[30] nr_lookups :0
+[44885.616996] connection[31] nr_lookups :0
+[44885.616997] pool : (127.0.0.1:6) nr_waits :0
+[44885.616998] connection[0] nr_lookups :36623
+[44885.617000] connection[1] nr_lookups :27390
+[44885.617001] connection[2] nr_lookups :19337
+[44885.617003] connection[3] nr_lookups :13027
+[44885.617004] connection[4] nr_lookups :12592
+[44885.617006] connection[5] nr_lookups :12592
+[44885.617007] connection[6] nr_lookups :12183
+[44885.617009] connection[7] nr_lookups :8608
+[44885.617010] connection[8] nr_lookups :3650
+[44885.617012] connection[9] nr_lookups :2091
+[44885.617013] connection[10] nr_lookups :1606
+[44885.617015] connection[11] nr_lookups :1405
+[44885.617016] connection[12] nr_lookups :0
+[44885.617018] connection[13] nr_lookups :0
+[44885.617019] connection[14] nr_lookups :0
+[44885.617020] connection[15] nr_lookups :0
+[44885.617022] connection[16] nr_lookups :0
+[44885.617023] connection[17] nr_lookups :0
+[44885.617025] connection[18] nr_lookups :0
+[44885.617026] connection[19] nr_lookups :0
+[44885.617028] connection[20] nr_lookups :0
+[44885.617029] connection[21] nr_lookups :0
+[44885.617030] connection[22] nr_lookups :0
+[44885.617032] connection[23] nr_lookups :0
+[44885.617033] connection[24] nr_lookups :0
+[44885.617035] connection[25] nr_lookups :0
+[44885.617036] connection[26] nr_lookups :0
+[44885.617038] connection[27] nr_lookups :0
+[44885.617039] connection[28] nr_lookups :0
+[44885.617041] connection[29] nr_lookups :0
+[44885.617042] connection[30] nr_lookups :0
+[44885.617044] connection[31] nr_lookups :0
+[44885.617051] connection pool destroyed for <127.0.0.1:10>
+[44885.617064] connection pool destroyed for <127.0.0.1:4>
+[44885.617069] connection pool destroyed for <127.0.0.1:9>
+[44885.617074] connection pool destroyed for <127.0.0.1:2>
+[44885.617078] connection pool destroyed for <127.0.0.1:3>
+[44885.617083] connection pool destroyed for <127.0.0.1:7>
+[44885.617088] connection pool destroyed for <127.0.0.1:13>
+[44885.617093] connection pool destroyed for <127.0.0.1:16>
+[44885.617097] connection pool destroyed for <127.0.0.1:12>
+[44885.617102] connection pool destroyed for <127.0.0.1:1>
+[44885.617106] connection pool destroyed for <127.0.0.1:5>
+[44885.617111] connection pool destroyed for <127.0.0.1:11>
+[44885.617116] connection pool destroyed for <127.0.0.1:15>
+[44885.617120] connection pool destroyed for <127.0.0.1:14>
+[44885.617125] connection pool destroyed for <127.0.0.1:8>
+[44885.617129] connection pool destroyed for <127.0.0.1:6>
+
