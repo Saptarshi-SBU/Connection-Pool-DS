@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# test connection map lookups (Need root permission)
+#
+
+count="0"
+DELAY="15"
+NTHREADS="2"
+NRENTRIES="100"
+MODNAME="conntable_ktest.ko"
+
+while true; do
+        count=$[$count + 1]
+        echo "****Running interation**** $count"
+	insmod $MODNAME max_items=$NRENTRIES max_threads=$NTHREADS
+        sleep $DELAY
+	rmmod $MODNAME
+	dmesg -c
+done
+
+
