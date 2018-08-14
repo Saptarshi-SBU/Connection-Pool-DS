@@ -1,6 +1,6 @@
-#ccflags-y := -Werror -g -Wall
+ccflags-y := -g -Wall -DCONFIG_CACHEOBJS_STATS
 obj-m := conntable_ktest.o
-conntable_ktest-y := conntable.o conntable_test.o
+conntable_ktest-y := conntable_v1.o conntable_test.o
 
 all:
 	make -C /lib/modules/`uname -r`/build M=`pwd` modules 

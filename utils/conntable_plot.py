@@ -32,12 +32,14 @@ class GPlot(object):
                     head = False
                     continue
                 self.rows.append(line)
+	assert len(self.rows), 'no data'
         self.file = fpath
 
     def filter_data(self, key):
         for line in self.rows:
             if key in line:
                 self.filter_rows.append(line)
+	assert len(self.filter_rows), 'no data selected'
 
     def create_plots(self, column_list):
         plots = []
