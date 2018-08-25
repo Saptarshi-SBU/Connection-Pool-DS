@@ -7,14 +7,18 @@
  */
 #include <linux/string.h>
 #include <linux/cache.h>
+#include <linux/net.h>
+#include <linux/inet.h>
+#include <linux/jhash.h>
 #include <linux/slab.h>
 #include <linux/wait.h>
 #include <linux/sched.h>
 
+#define CONFIG_CACHEOBJS_CONNHASH
+#define CONNTABLE_VERSION 1
+
 #include "conntable.h"
 #include "stat.h"
-
-#if !defined(CONFIG_CACHEOBJS_CONNPOOL)
 
 /*
  * Ref : https://www.kfki.hu/~kadlec/sw/netfilter/ct3/
@@ -55,35 +59,36 @@ static inline int ipv4_hash32(const unsigned char *ip, unsigned int port, u32 *k
  * connection node reset stats
  */
 static inline
-void connection_node_reset_stats(struct cacheobj_connection_node *connp)
+void cacheobj_connection_node_reset_stats(struct cacheobj_connection_node *connp)
 {
 	cacheobjects_stat64_reset(&connp->nr_lookups);
-	cacheobjects_stat64_reset(&connp->tot_js_get);
-	cacheobjects_stat64_reset(&connp->tot_js_put);
-	cacheobjects_stat64_reset(&connp->tot_js_wait);
+	cacheobjects_stat64_reset(&connp->nr_slow_paths);
+	cacheobjects_stat64_reset(&connp->cum_get_ns);
+	cacheobjects_stat64_reset(&connp->cum_put_ns);
+	cacheobjects_stat64_reset(&connp->cum_wait_ns);
 	cacheobjects_stat64_reset(&connp->tx_bytes);
 	cacheobjects_stat64_reset(&connp->rx_bytes);
 }
 
 /*
- * connection node stat for jiffies
+ * connection node stat for updating cumulative time
  */
 static inline
-void connection_node_update_jiffies(struct cacheobj_connection_node *connp,
+void cacheobj_connection_node_update_ktime(struct cacheobj_connection_node *connp,
         conn_op_t op)
 {
-	switch (op) {
+        switch (op) {
 	case GET:
-		cacheobjects_stat64_add(jiffies_now() - connp->now_js,
-			&connp->tot_js_get);
+		cacheobjects_stat64_add(ktime_ns_delta(ktime_get(),
+			connp->now_ns), &connp->cum_get_ns);
 		break;
 	case PUT:
-		cacheobjects_stat64_add(jiffies_now() - connp->now_js,
-			&connp->tot_js_put);
+		cacheobjects_stat64_add(ktime_ns_delta(ktime_get(),
+			connp->now_ns), &connp->cum_put_ns);
 		break;
 	default:
 		CONNTBL_ASSERT(0);
-	}
+        }
 }
 
 /*
@@ -97,10 +102,11 @@ inline int cacheobj_connection_node_init(struct cacheobj_connection_node *connp,
 		pr_err("failed to allocate ip string\n");
 		return -ENOMEM;
 	}
+
 	connp->port = port;
 	mutex_init(&connp->lock);
 	INIT_HLIST_NODE(&connp->hentry);
-        connection_node_reset_stats(connp);
+        cacheobj_connection_node_reset_stats(connp);
 	return 0;
 }
 
@@ -113,7 +119,6 @@ inline
 int cacheobj_connection_node_destroy(struct cacheobj_connection_node *connp)
 {
 	if (connp->state == CONN_FAILED) {
-		CONNTBL_ASSERT(atomic64_read(&connp->nr_waits_pend) == 0);
 		CONNTBL_ASSERT(!mutex_is_locked(&connp->lock));
 	} else if (mutex_is_locked(&connp->lock)) {
 		pr_err("entry is locked, cannot destroy!!!\n");
@@ -167,11 +172,10 @@ void cacheobj_connection_node_ready(struct cacheobj_connection_node *connp)
 	}
 }
 
-
 /*
  * initialize conn table and associated lock for protection
  */
-static int connection_hashtable_init(struct cacheobj_conntable* table)
+static int cacheobj_connection_hashtable_init(struct cacheobj_conntable* table)
 {
 	hash_init(table->buckets);
 	rwlock_init(&table->lock);
@@ -190,7 +194,7 @@ static inline void __connection_insert(struct cacheobj_conntable *table,
 /*
  * insert entry in table, protected
  */
-static int connection_hashtable_insert(struct cacheobj_conntable *table,
+static int cacheobj_connection_hashtable_insert(struct cacheobj_conntable *table,
 	struct cacheobj_connection_node *connp)
 {
 	u32 key = 0;
@@ -221,7 +225,6 @@ static inline int __connection_remove(struct cacheobj_conntable *table,
 	}
 
 	if (connp->state == CONN_FAILED) {
-		CONNTBL_ASSERT(atomic64_read(&connp->nr_waits_pend) == 0);
 		CONNTBL_ASSERT(!mutex_is_locked(&connp->lock));
 	} else if ((mutex_is_locked(&connp->lock)) ||
                 (connp->state == CONN_ACTIVE)) {
@@ -237,7 +240,7 @@ static inline int __connection_remove(struct cacheobj_conntable *table,
 /*
  * remove entry from table, protected
  */
-static int connection_hashtable_remove(struct cacheobj_conntable *table,
+static int cacheobj_connection_hashtable_remove(struct cacheobj_conntable *table,
         struct cacheobj_connection_node *connp)
 {
 	int err;
@@ -252,7 +255,7 @@ static int connection_hashtable_remove(struct cacheobj_conntable *table,
  * check if connection exists given ip-port, protected
  * note returned connection handle is not locked and can slip away
  */
-static struct cacheobj_connection_node *connection_hashtable_peek
+static struct cacheobj_connection_node *cacheobj_connection_hashtable_lookup
     (struct cacheobj_conntable *table, const char *ip, unsigned int port)
 {
 	u32 key = 0;
@@ -278,7 +281,7 @@ static struct cacheobj_connection_node *connection_hashtable_peek
  * currently sole consumer is table destroy
  * note returned connection handle is not locked
  */
-static struct cacheobj_connection_node *connection_hashtable_iter
+static struct cacheobj_connection_node *cacheobj_connection_hashtable_iter
     (struct cacheobj_conntable *table)
 {
 	int bkt = 0;
@@ -305,7 +308,9 @@ static struct cacheobj_connection_node* connection_get(struct cacheobj_conntable
         *table, const char *ip, unsigned int port)
 {
 	u32 key = 0;
-	unsigned long now_js = 0;
+#ifdef CONFIG_CACHEOBJS_STATS
+	ktime_t now_ns;
+#endif
 	struct cacheobj_connection_node *connp;
 	bool present = false, slow_path = false, apd;
 
@@ -313,26 +318,23 @@ static struct cacheobj_connection_node* connection_get(struct cacheobj_conntable
 		return ERR_PTR(-EINVAL);
 
 	// start wait time
-	cacheobjects_stat64_jiffies(&now_js);
+	cacheobjects_stat64_ktime(&now_ns);
 	read_lock(&table->lock);
 
 	do {
 		struct hlist_node *tmp = NULL;
 		apd = true;
-		hash_for_each_possible_safe(table->buckets, connp, tmp, hentry,
-                        key) {
-			if ((connp->port != port) ||
-                            (strcmp(connp->ip, ip) != 0))
+		hash_for_each_possible_safe(table->buckets, connp, tmp, hentry, key) {
+			if ((connp->port != port) || (strcmp(connp->ip, ip) != 0))
 				continue;
 
 			present = true;
 
 			if (slow_path) {
-				atomic64_inc(&connp->nr_waits);
-				atomic64_inc(&connp->nr_waits_pend);
+				cacheobjects_stat64(&connp->nr_slow_paths);
 				pr_debug("enter slow path for get connection"
-					"(%s-%u) wait_count :%ld\n", ip, port,
-					atomic64_read(&connp->nr_waits));
+					"(%s-%u) wait_count :%lld\n", ip, port,
+					cacheobjects_stat64_read(&connp->nr_slow_paths));
 				mutex_lock(&connp->lock);
 				// fast path
 			} else if (!mutex_trylock(&connp->lock)) {
@@ -341,17 +343,14 @@ static struct cacheobj_connection_node* connection_get(struct cacheobj_conntable
 			}
 
 			// got mutex
-			if (slow_path)
-				atomic64_dec(&connp->nr_waits_pend);
-
 			if (connp->state == CONN_READY) {
 				connp->state = CONN_ACTIVE;
 				read_unlock(&table->lock);
 				// end wait time
-				cacheobjects_stat64_add(jiffies_now() - now_js,
-					&connp->tot_js_wait);
+				cacheobjects_stat64_add(ktime_ns_delta
+				     (ktime_get(), now_ns), &connp->cum_wait_ns);
 				// start use time
-				cacheobjects_stat64_jiffies(&connp->now_js);
+				cacheobjects_stat64_ktime(&connp->now_ns);
 				cacheobjects_stat64(&connp->nr_lookups);
 				return connp;
 			} else {
@@ -379,14 +378,14 @@ static struct cacheobj_connection_node* connection_get(struct cacheobj_conntable
  *	timed version is now a plain dfc get (untimed). if we add
  *	waitqueue based implementation, we can update this function (TBD)
  */
-static struct cacheobj_connection_node* connection_timed_get
+static struct cacheobj_connection_node* cacheobj_connection_timed_get
         (struct cacheobj_conntable *table, const char *ip, unsigned int port,
         long timeout)
 {
 	return connection_get(table, ip, port);
 }
 
-static void connection_put(struct cacheobj_conntable *table,
+static void cacheobj_connection_put(struct cacheobj_conntable *table,
 	struct cacheobj_connection_node *connp, conn_op_t op)
 {
 	if (!mutex_is_locked(&connp->lock))
@@ -397,7 +396,7 @@ static void connection_put(struct cacheobj_conntable *table,
 
 	if (connp->state == CONN_ACTIVE) {
 		// end use time
-		connection_node_update_jiffies(connp, op);
+		cacheobj_connection_node_update_ktime(connp, op);
 		connp->state = CONN_READY;
 	}
 	mutex_unlock(&connp->lock);
@@ -406,7 +405,7 @@ static void connection_put(struct cacheobj_conntable *table,
 /*
  * remove all entries from the table, protected
  */
-static int connection_hashtable_destroy(struct cacheobj_conntable *table)
+static int cacheobj_connection_hashtable_destroy(struct cacheobj_conntable *table)
 {
 	int err = 0, bkt;
 	unsigned long long nr_items = 0;
@@ -436,37 +435,39 @@ exit:
 /*
  * track connection distribution, protected
  */
-static void connection_hashtable_dump(struct cacheobj_conntable *table,
+static void cacheobj_connection_hashtable_dump(struct cacheobj_conntable *table,
 	struct seq_file *m)
 {
 	int bkt;
-	unsigned long total, getus, putus, wtus;
-	u64 lookups, waits, tx_mb, rx_mb;
-	struct cacheobj_connection_node *connp; // iterator
 	struct hlist_node *tmp;
+	u64 lookups, nslow, tx_mb, rx_mb;
+	unsigned long ns, getus, putus, wtus;
+	struct cacheobj_connection_node *conn; // iterator
 
-	seq_printf(m, "HOST\tSTATE\tRETRIES\tLOOKUPS\tWAITS\tAVG_WAIT(us)\t"
-			"AVG_LAT_GET(us)\tAVG_LAT_PUT(us)\tSEND(kb) RCV(kb)\n");
+	seq_printf(m, "conntable stats version :%d\n\n", CONNTABLE_VERSION);
+
+	seq_printf(m, "HOST\tSTATE\tRETRIES\tLOOKUPS\tSLOWPATH\tAVG_WAIT(ns)\t"
+			"AVG_LAT_GET(ns)\tAVG_LAT_PUT(ns)\tSEND(kb) RCV(kb)\n");
 
 	read_lock(&table->lock);
 
 	if (hash_empty(table->buckets))
 		goto exit;
 
-	hash_for_each_safe(table->buckets, bkt, tmp, connp, hentry) {
-		lookups = atomic64_read(&connp->nr_lookups);
-		waits = cacheobjects_stat64_read(&connp->nr_waits);
-		tx_mb = cacheobjects_stat64_read(&connp->tx_bytes) >> 10;
-		rx_mb = cacheobjects_stat64_read(&connp->rx_bytes) >> 10;
-		total = cacheobjects_stat64_jiffies2usec(&connp->tot_js_get);
-		getus = div64_safe(total, lookups);
-		total = cacheobjects_stat64_jiffies2usec(&connp->tot_js_put);
-		putus = div64_safe(total, lookups);
-		total = cacheobjects_stat64_jiffies2usec(&connp->tot_js_wait);
-		wtus = div64_safe(total, lookups);
+	hash_for_each_safe(table->buckets, bkt, tmp, conn, hentry) {
+		lookups = cacheobjects_stat64_read(&conn->nr_lookups);
+		nslow = cacheobjects_stat64_read(&conn->nr_slow_paths);
+		tx_mb = cacheobjects_stat64_read(&conn->tx_bytes) >> 10;
+		rx_mb = cacheobjects_stat64_read(&conn->rx_bytes) >> 10;
+		ns = cacheobjects_stat64_read(&conn->cum_get_ns);
+		getus = div64_safe(ns, lookups);
+		ns = cacheobjects_stat64_read(&conn->cum_put_ns);
+		putus = div64_safe(ns, lookups);
+		ns = cacheobjects_stat64_read(&conn->cum_wait_ns);
+		wtus = div64_safe(ns, lookups);
 		seq_printf(m, "%s:%u %s %u %llu %llu %lu %lu %lu %llu %llu\n",
-			connp->ip, connp->port, conn_state_status(connp->state),
-			connp->nr_retry_attempts, lookups, waits, wtus, getus,
+			conn->ip, conn->port, conn_state_status(conn->state),
+			conn->nr_retry_attempts, lookups, nslow, wtus, getus,
 			putus, tx_mb, rx_mb);
 	}
 exit:
@@ -475,14 +476,13 @@ exit:
 
 const struct cacheobj_conntable_operations cacheobj_conntable_ops =
 {
-    .cacheobj_conntable_init = connection_hashtable_init,
-    .cacheobj_conntable_destroy = connection_hashtable_destroy,
-    .cacheobj_conntable_insert = connection_hashtable_insert,
-    .cacheobj_conntable_remove = connection_hashtable_remove,
-    .cacheobj_conntable_peek = connection_hashtable_peek,
-    .cacheobj_conntable_iter = connection_hashtable_iter,
-    .cacheobj_conntable_timed_get = connection_timed_get,
-    .cacheobj_conntable_put = connection_put,
-    .cacheobj_conntable_dump = connection_hashtable_dump
+    .cacheobj_conntable_init = cacheobj_connection_hashtable_init,
+    .cacheobj_conntable_destroy = cacheobj_connection_hashtable_destroy,
+    .cacheobj_conntable_insert = cacheobj_connection_hashtable_insert,
+    .cacheobj_conntable_remove = cacheobj_connection_hashtable_remove,
+    .cacheobj_conntable_lookup = cacheobj_connection_hashtable_lookup,
+    .cacheobj_conntable_iter = cacheobj_connection_hashtable_iter,
+    .cacheobj_conntable_timed_get = cacheobj_connection_timed_get,
+    .cacheobj_conntable_put = cacheobj_connection_put,
+    .cacheobj_conntable_dump = cacheobj_connection_hashtable_dump
 };
-#endif

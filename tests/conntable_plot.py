@@ -8,6 +8,8 @@ import os
 import Gnuplot
 import ConfigParser
 
+skipList = ['pool:' ]
+
 class GPlot(object):
 
     def __init__(self):
@@ -27,9 +29,13 @@ class GPlot(object):
             for line in f:
                 line = line.strip()
                 line = line.split()
+                if len(line) == 0:
+                    continue
                 if head:
                     self.format_list = line
                     head = False
+                    continue
+                if line[0] in skipList:
                     continue
                 self.rows.append(line)
 	assert len(self.rows), 'no data'

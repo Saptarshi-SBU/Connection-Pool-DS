@@ -13,7 +13,7 @@
 #include <linux/printk.h>
 #include <linux/types.h>
 #include <linux/list.h>
-#include <linux/mutex.h>
+#include <linux/atomic.h>
 #include <linux/wait.h>
 #include <linux/delay.h>
 #include <linux/time.h>
@@ -23,7 +23,7 @@
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
 
-#define MAX_BUCKETS 128
+#define MAX_BUCKETS 64
 #define MAX_BUCKET_BITS ilog2(MAX_BUCKETS)
 
 typedef atomic64_t stat64_t;
@@ -40,8 +40,7 @@ typedef enum conn_op {
 	X(2, CONN_ACTIVE, ACTIVE) \
 	X(3, CONN_FAILED, FAILED) \
 	X(4, CONN_RETRY, RETRY) \
-	X(5, CONN_ZOMBIE, ZOMBIE) \
-	X(6, CONN_LOCKED, LOCKED)
+	X(5, CONN_ZOMBIE, ZOMBIE)
 
 typedef enum conn_state {
 	#define X(code, name, string) name = code,
@@ -60,49 +59,57 @@ static inline const char *conn_state_status(enum conn_state state)
 	}
 }
 
-#ifdef CONFIG_CACHEOBJS_CONNPOOL
+#ifdef CONFIG_CACHEOBJS_CONNPOOL // new version
 struct cacheobj_connection_pool {
-	const char		*ip;
-	unsigned int		port;
-	u32			key; // cache hash key
-        wait_queue_head_t       wq;
-	atomic_t		upref; // protect pool
-        atomic_t                nr_connections;
-        atomic_t                nr_idle_connections;
-	stat64_t		nr_waits;
-        struct list_head        conn_list;
-	struct hlist_node	hentry;
-};
+	const char	    *ip;
+	unsigned int	    port;
+        atomic_t            nr_connections;
+        atomic_t            nr_ready; // updated on get/put (cacheline bouncing)
+        struct list_head    conn_list;
+        wait_queue_head_t   wq;
+	struct hlist_node   hentry;
+#ifdef CONFIG_CACHEOBJS_STATS
+	stat64_t	    nr_slow_paths;
 #endif
+};
 
+struct cacheobj_connection_node {
+	const char		*ip;
+	unsigned int            port;
+	atomic_long_t	        state;
+        unsigned int            nr_retry_attempts;
+#ifdef CONFIG_CACHEOBJS_STATS
+	ktime_t			now_ns;
+	stat64_t		cum_get_ns;  // cum time for GET
+	stat64_t		cum_put_ns;  // cum time for PUT
+	stat64_t		cum_wait_ns; // cum wait time to grab ready conn
+	stat64_t                nr_lookups;
+	stat64_t		tx_bytes;
+	stat64_t		rx_bytes;
+#endif
+	struct list_head        list_node;
+	struct cacheobj_connection_pool *pool;
+};
+#else // older version
 struct cacheobj_connection_node {
 	const char		*ip;
 	unsigned int		port;
 	conn_state		state;
-#ifdef CONFIG_CACHEOBJS_CONNPOOL
-	unsigned long		flags;
-#else
 	struct mutex		lock;
-#endif
-	stat64_t                nr_lookups;
-	stat64_t 	        nr_waits;
-        stat64_t                nr_waits_pend;
         unsigned int            nr_retry_attempts;
 #ifdef CONFIG_CACHEOBJS_STATS
-	unsigned long		now_js;
-	stat64_t		tot_js_get;	// total jiffies, get
-	stat64_t		tot_js_put;	// total jiffies, put
-	stat64_t		tot_js_wait;	// total jiffies, idle wait
+	ktime_t			now_ns;
+	stat64_t		cum_get_ns;  // cum time for GET
+	stat64_t		cum_put_ns;  // cum time for PUT
+	stat64_t		cum_wait_ns; // cum wait time to grab conn
+	stat64_t 	        nr_slow_paths;
+	stat64_t                nr_lookups;
 	stat64_t		tx_bytes;
 	stat64_t		rx_bytes;
 #endif
-#ifdef CONFIG_CACHEOBJS_CONNPOOL
-	struct list_head	list_node;
-	struct cacheobj_connection_pool	*pool;
-#else
 	struct hlist_node	hentry;	// hash node for quick lookup
-#endif
 };
+#endif
 
 int cacheobj_connection_node_init(struct cacheobj_connection_node *conn,
         const char *ip, unsigned int port);
@@ -126,7 +133,7 @@ struct cacheobj_conntable_operations {
 		struct cacheobj_connection_node *);
         struct cacheobj_connection_node* (*cacheobj_conntable_iter)
                 (struct cacheobj_conntable *);
-	struct cacheobj_connection_node* (*cacheobj_conntable_peek)
+	struct cacheobj_connection_node* (*cacheobj_conntable_lookup)
 		(struct cacheobj_conntable *, const char *ip, unsigned int port);
 	struct cacheobj_connection_node* (*cacheobj_conntable_timed_get)
 		(struct cacheobj_conntable *table, const char *ip,

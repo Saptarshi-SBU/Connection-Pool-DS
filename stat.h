@@ -9,6 +9,8 @@
 #ifndef __STAT_H
 #define __STAT_H
 
+#include <linux/ktime.h>
+
 static inline unsigned long div64_safe(unsigned long sum, unsigned long nr)
 {
 	return nr ? div64_ul(sum, nr) : 0;
@@ -17,6 +19,11 @@ static inline unsigned long div64_safe(unsigned long sum, unsigned long nr)
 static inline u64 jiffies_now(void)
 {
 	return get_jiffies_64();
+}
+
+static inline s64 ktime_ns_delta(const ktime_t later, const ktime_t earlier)
+{
+    return ktime_to_ns(ktime_sub(later, earlier));
 }
 
 #ifdef CONFIG_CACHEOBJS_STATS
@@ -66,6 +73,11 @@ static inline u64 cacheobjects_stat64_jiffies2usec(atomic64_t *stat)
 	return jiffies64_to_nsecs(atomic64_read(stat))/1000UL;
 }
 
+static inline void cacheobjects_stat64_ktime(ktime_t *now)
+{
+        *now = ktime_get();
+}
+
 #define INITIALIZE_STATS_CONFIG(value, newvalue) \
  (value) = (newvalue)
 
@@ -79,6 +91,7 @@ static inline u64 cacheobjects_stat64_jiffies2usec(atomic64_t *stat)
 #define cacheobjects_stat64_read(stat) 0
 #define cacheobjects_stat64_jiffies(stat) do {} while (0)
 #define cacheobjects_stat64_jiffies2usec(stat) 0
+#define cacheobjects_stat64_ktime(stat) do {} while (0)
 #define INITIALIZE_STATS_CONFIG(value, newvalue) do {} while (0)
 
 #endif

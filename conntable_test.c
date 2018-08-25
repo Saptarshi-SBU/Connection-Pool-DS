@@ -45,9 +45,9 @@ module_param(nr_conns, uint, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 MODULE_PARM_DESC(nr_conns, "Number of connections per node");
 
 /* put delay in ms (for testing waits) */
-static int put_delay_ms = 0;
-module_param(put_delay_ms, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-MODULE_PARM_DESC(put_delay_ms, "put delay in ms");
+static int put_delay_us = 0;
+module_param(put_delay_us, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+MODULE_PARM_DESC(put_delay_us, "put delay in ms");
 
 /* nr of threads spawned for test */
 static int nr_lookup_threads = 1;
@@ -85,13 +85,6 @@ struct cacheobj_conntable glob_conntable, *g_conntable;
 /* connection table operations */
 static const struct cacheobj_conntable_operations *conn_ops =
 	&cacheobj_conntable_ops;
-
-/* get time delta */
-static inline s64
-ktime_ns_delta(const ktime_t later, const ktime_t earlier)
-{
-    return ktime_to_ns(ktime_sub(later, earlier));
-}
 
 static int _alloc_target_nodes(void)
 {
@@ -245,8 +238,8 @@ static int _get_and_put_entry(struct cacheobj_conntable *conntable,
         return PTR_ERR(conn);
 
     /* inject delay */
-    if (put_delay_ms)
-        msleep(put_delay_ms);
+    if (put_delay_us)
+        usleep_range(put_delay_us, put_delay_us);
 
     conn_ops->cacheobj_conntable_put(conntable, conn, GET);
     return 0;
@@ -406,6 +399,9 @@ static int __init start_module(void)
         goto fail_startup;
     }
 #endif
+
+    msleep(1000);
+    pr_info("launching get/put threads...\n");
 
     ktest_getput = spawn_test_threads(threadfn_test_getput, (void*)g_conntable,
             nr_lookup_threads, "ktest_getput");
