@@ -22,6 +22,12 @@
 #include "conntable.h"
 #include "stat.h"
 
+#define CONN_FMT "<%s:%u>"
+#define CONN_ARGS(conn) conn->ip, conn->port
+
+#define POOL_FMT "<%s:%u>"
+#define POOL_ARGS(pool) pool->ip, pool->port
+
 /*
  * Ref : https://www.kfki.hu/~kadlec/sw/netfilter/ct3/
  *
@@ -44,7 +50,8 @@ static inline u32 hashfn(__be32 daddr, __be32 port)
  *
  * TBD   : perform ip conversion outside of core table operations
  */
-static inline int ipv4_hash32(const unsigned char *ip, unsigned int port, u32 *key)
+static inline int ipv4_hash32(const unsigned char *ip, unsigned int port,
+    u32 *key)
 {
     __be32 daddr = 0;
 
@@ -60,8 +67,8 @@ static inline int ipv4_hash32(const unsigned char *ip, unsigned int port, u32 *k
 /*
  * connection node reset stats
  */
-    static inline
-void cacheobj_connection_node_reset_stats(struct cacheobj_connection_node *connp)
+static inline void cacheobj_connection_node_reset_stats
+    (struct cacheobj_connection_node *connp)
 {
     cacheobjects_stat64_reset(&connp->nr_lookups);
     cacheobjects_stat64_reset(&connp->cum_get_ns);
@@ -74,9 +81,8 @@ void cacheobj_connection_node_reset_stats(struct cacheobj_connection_node *connp
 /*
  * connection node stat for updating cumulative time
  */
-static inline
-void cacheobj_connection_node_update_ktime(struct cacheobj_connection_node *connp,
-        conn_op_t op)
+static inline void cacheobj_connection_node_update_ktime
+    (struct cacheobj_connection_node *connp, conn_op_t op)
 {
     switch (op) {
         case GET:
@@ -96,7 +102,7 @@ void cacheobj_connection_node_update_ktime(struct cacheobj_connection_node *conn
  * cacheobj_connection_node initialization
  */
 inline int cacheobj_connection_node_init(struct cacheobj_connection_node *connp,
-        const char *ip, unsigned int port)
+    const char *ip, unsigned int port)
 {
     CONNTBL_ASSERT(connp);
     CONNTBL_ASSERT(ip);
@@ -120,7 +126,7 @@ inline int cacheobj_connection_node_init(struct cacheobj_connection_node *connp,
  * allocated, so free is not needed.
  * Note: If we reach here, that means we are good to die
  */
-inline
+    inline
 int cacheobj_connection_node_destroy(struct cacheobj_connection_node *connp)
 {
     unsigned long state;
@@ -138,7 +144,7 @@ int cacheobj_connection_node_destroy(struct cacheobj_connection_node *connp)
 /*
  * Move the connection to failed state
  */
-inline
+    inline
 void cacheobj_connection_node_failed(struct cacheobj_connection_node *connp)
 {
     unsigned long state, old;
@@ -156,14 +162,14 @@ void cacheobj_connection_node_failed(struct cacheobj_connection_node *connp)
 /*
  * Move the connection to retry state
  */
-inline
+    inline
 void cacheobj_connection_node_retry(struct cacheobj_connection_node *connp)
 {
     unsigned long state, old;
 
     state = atomic_long_read(&connp->state);
     if (state == CONN_FAILED) {
-        old = atomic_long_cmpxchg(&connp->state, state, CONN_RETRY);
+        old = atomic_long_cmpxchg(&connp->state, CONN_FAILED, CONN_RETRY);
         CONNTBL_ASSERT(old == state);
     } else {
         pr_err("invalid connection state :%lu\n", state);
@@ -174,14 +180,14 @@ void cacheobj_connection_node_retry(struct cacheobj_connection_node *connp)
 /*
  * Move the connection to ready state
  */
-inline
+    inline
 void cacheobj_connection_node_ready(struct cacheobj_connection_node *connp)
 {
     unsigned long state, old;
 
     state = atomic_long_read(&connp->state);
     if (state == CONN_RETRY) {
-        old = atomic_long_cmpxchg(&connp->state, state, CONN_READY);
+        old = atomic_long_cmpxchg(&connp->state, CONN_RETRY, CONN_READY);
         CONNTBL_ASSERT(old == state);
     }
 }
@@ -201,7 +207,7 @@ static int connectionpool_hashtable_init(struct cacheobj_conntable *table)
  * allocate and initialize a connection pool
  */
 static struct cacheobj_connection_pool *__connection_pool_alloc
-        (struct cacheobj_conntable *table, const char *ip, unsigned int port)
+    (struct cacheobj_conntable *table, const char *ip, unsigned int port)
 {
     int err = 0;
     struct cacheobj_connection_pool *pool;
@@ -209,36 +215,33 @@ static struct cacheobj_connection_pool *__connection_pool_alloc
     pool = (struct cacheobj_connection_pool *)
         kzalloc(sizeof(struct cacheobj_connection_pool), GFP_KERNEL);
     if (!pool) {
-        pr_err("failed to allocate connection pool (%s:%u)\n", ip, port);
+        pr_err("connection pool alloc failed "POOL_FMT"\n", ip, port);
         err = -ENOMEM;
-        goto poolmem_error;
+        goto nomem_pool;
     }
 
     pool->ip = kstrdup(ip, GFP_KERNEL);
     if (!pool->ip) {
-        pr_err("failed to allocate pool ip (%s:%u)\n", ip, port);
+        pr_err("connection pool ip alloc failed "POOL_FMT"\n", ip, port);
         err = -ENOMEM;
-        goto ipmem_error;
+        goto nomem_ip;
     }
     pool->port = port;
 
     // connection list
     INIT_LIST_HEAD(&pool->conn_list);
-    atomic_set(&pool->nr_connections, 0);
-
-    // waitqueue for pool busy condition
-    init_waitqueue_head(&pool->wq);
-    cacheobjects_stat64_reset(&pool->nr_slow_paths);
+    sema_init(&pool->conn_sem, 0);
 
     // pool is a hashtable node
     INIT_HLIST_NODE(&pool->hentry);
 
+    cacheobjects_stat64_reset(&pool->nr_slow_paths);
     return pool;
 
-ipmem_error:
+nomem_ip:
     kfree(pool);
 
-poolmem_error:
+nomem_pool:
     return ERR_PTR(-err);
 }
 
@@ -257,24 +260,17 @@ static int __connection_pool_destroy(struct cacheobj_connection_pool *pool)
     // pool must be in hash table!
     CONNTBL_ASSERT(hash_hashed(&pool->hentry));
 
-    if (waitqueue_active(&pool->wq)) {
-        pr_err("pool destroy error, pool has pending waiters\n");
-        goto pool_busy;
-    }
-
+    smp_mb();
     if (!list_empty(&pool->conn_list)) {
+        CONNTBL_ASSERT(pool->conn_sem.count == 0);
         pr_err("pool destroy error, connection list is not empty\n");
-        goto pool_busy;
+        return -EBUSY;
     }
-    CONNTBL_ASSERT(atomic_read(&pool->nr_connections) == 0);
 
     hash_del(&pool->hentry);
     kfree(pool->ip);
     kfree(pool);
     return 0;
-
-pool_busy:
-    return -EBUSY;
 }
 
 /*
@@ -293,7 +289,7 @@ static inline struct cacheobj_connection_pool *__get_connection_pool
         if ((pool->port == port) && (strcmp(pool->ip, ip) == 0))
             return pool;
     }
-    pr_debug("connection pool not found <%s:%u>", ip, port);
+    pr_debug("connection pool not found "POOL_FMT"\n", ip, port);
     return NULL;
 }
 
@@ -331,10 +327,10 @@ static int connectionpool_hashtable_insert(struct cacheobj_conntable *table,
             try_add = true;
         }
         write_unlock(&table->lock);
-	// if someone already created the pool for us
         if (!try_add) {
-             kfree(new_pool);
-             new_pool = NULL;
+            // someone already created the pool for us
+            kfree(new_pool);
+            new_pool = NULL;
         }
     } else {
         read_unlock(&table->lock);
@@ -348,18 +344,13 @@ static int connectionpool_hashtable_insert(struct cacheobj_conntable *table,
     /* added to head of per-pool connection chain */
     write_lock(&table->lock);
     list_add(&connp->list_node, &pool->conn_list);
-    atomic_inc(&pool->nr_connections);
-    atomic_inc(&pool->nr_ready);
     write_unlock(&table->lock);
-
-    // wakeup any pending waiters, preceding unlock enforces a barrier
-    if (waitqueue_active(&pool->wq))
-        wake_up_interruptible_nr(&pool->wq, 1);
+    up(&pool->conn_sem);
 
     if (new_pool)
-        pr_info("created new connection pool <%s:%u>", pool->ip, pool->port);
+        pr_info("new connection pool "POOL_FMT"\n", POOL_ARGS(pool));
 
-    pr_debug("added connection to pool <%s:%u>", connp->ip, connp->port);
+    pr_debug("added connection to pool "CONN_FMT"\n", CONN_ARGS(connp));
     return 0;
 }
 
@@ -371,14 +362,16 @@ static int connectionpool_hashtable_insert(struct cacheobj_conntable *table,
  * does a get while the remove attempt get past the conn in use check
  */
 static inline int __connection_remove(struct cacheobj_conntable *table,
-        struct cacheobj_connection_node *connp, bool is_locked)
+    struct cacheobj_connection_node *connp, bool have_lock)
 {
     int err;
     unsigned long state, old;
+    struct cacheobj_connection_pool *pool;
 
     CONNTBL_ASSERT(connp);
     CONNTBL_ASSERT(connp->pool);
 
+    pool = connp->pool;
     state = atomic_long_read(&connp->state);
     if ((state == CONN_ACTIVE) || (state == CONN_RETRY)) {
         err = -EBUSY;
@@ -394,22 +387,21 @@ static inline int __connection_remove(struct cacheobj_conntable *table,
         goto remove_error;
     }
 
-    if (!is_locked) {
+    if (have_lock) {
+        list_del(&connp->list_node);
+    } else {
         write_lock(&table->lock);
         list_del(&connp->list_node);
-        atomic_dec(&connp->pool->nr_connections);
         write_unlock(&table->lock);
-    } else {
-        list_del(&connp->list_node);
-        atomic_dec(&connp->pool->nr_connections);
     }
+    down(&pool->conn_sem);
 
     connp->pool = NULL; // uncache
-    pr_debug("removed connection from pool (%s:%u)\n", connp->ip, connp->port);
+    pr_debug("removed connection from pool "CONN_FMT"\n", CONN_ARGS(connp));
     return 0;
 
 remove_error:
-    pr_err("failed to remove connection (%s:%u)\n", connp->ip, connp->port);
+    pr_err("failed to remove connection "CONN_FMT"\n", CONN_ARGS(connp));
     return err;
 }
 
@@ -418,10 +410,10 @@ remove_error:
  * returns 0 on success otherwise -EBUSY on error
  */
 static int connectionpool_hashtable_remove(struct cacheobj_conntable
-        *table, struct cacheobj_connection_node *connp)
+    *table, struct cacheobj_connection_node *connp)
 {
-    bool is_locked = false;
-    return __connection_remove(table, connp, is_locked);
+    bool have_lock = false;
+    return __connection_remove(table, connp, have_lock);
 }
 
 /*
@@ -463,12 +455,12 @@ static struct cacheobj_connection_node *connectionpool_hashtable_iter
 
     read_lock(&table->lock);
     hash_for_each(table->buckets, bkt, pool, hentry) {
-	if (!list_empty(&pool->conn_list)) {
-        	connp = list_first_entry(&pool->conn_list,
-                	struct cacheobj_connection_node, list_node);
-        	read_unlock(&table->lock);
-        	return connp;
-	}
+        if (!list_empty(&pool->conn_list)) {
+            connp = list_first_entry(&pool->conn_list,
+                    struct cacheobj_connection_node, list_node);
+            read_unlock(&table->lock);
+            return connp;
+        }
     }
     read_unlock(&table->lock);
     return NULL;
@@ -492,73 +484,68 @@ static struct cacheobj_connection_node* connection_timed_get
 {
     u32 key;
     bool apd;
+    int err = 0;
     ktime_t now_ns;
     unsigned long state;
     struct cacheobj_connection_pool *pool;
     struct cacheobj_connection_node *connp;
 
-    if (ipv4_hash32(ip, port, &key) < 0)
-        return ERR_PTR(-EINVAL);
+    if (ipv4_hash32(ip, port, &key) < 0) {
+        err = -EINVAL;
+        goto exit;
+    }
 
     cacheobjects_stat64_ktime(&now_ns); // start wait time
-    do {
+
+    read_lock(&table->lock);
+
+    pool = __get_connection_pool(table, ip, port, key);
+    if (!pool || list_empty(&pool->conn_list)) {
+        read_unlock(&table->lock);
+        err = -ENOENT;
+        pr_debug("connection not found (%s:%u)\n", ip, port);
+        goto exit;
+    }
+
+    if (down_trylock(&pool->conn_sem)) {
+        read_unlock(&table->lock);
+        cacheobjects_stat64(&pool->nr_slow_paths);
+        err = down_timeout(&pool->conn_sem, timeout);
+        if (err) {
+            pr_err("get connection timed out "POOL_FMT"\n", POOL_ARGS(pool));
+            goto exit;
+        }
         read_lock(&table->lock);
+    }
 
-        pool = __get_connection_pool(table, ip, port, key);
-        if (!pool) {
-            pr_debug("connection pool not found (%s:%u)\n", ip, port);
-            read_unlock(&table->lock);
-            return NULL; // hint to upper layer to create a pool
-        }
-
-        if (list_empty(&pool->conn_list)) {
-            read_unlock(&table->lock);
-            pr_info("pool empty, connection not found <%s:%u>\n", ip, port);
-            connp = NULL;
-            goto exit;
-        }
-
-        apd = true;
-        list_for_each_entry(connp, &pool->conn_list, list_node) {
-            // grab ready connection
-            if (((state = atomic_long_read(&connp->state)) == CONN_READY) &&
-                (atomic_long_cmpxchg(&connp->state, CONN_READY, CONN_ACTIVE)
+    apd = true;
+    list_for_each_entry(connp, &pool->conn_list, list_node) {
+        // grab ready connection
+        if (((state = atomic_long_read(&connp->state)) == CONN_READY) &&
+            (atomic_long_cmpxchg(&connp->state, CONN_READY, CONN_ACTIVE)
                 == CONN_READY)) {
-                read_unlock(&table->lock);
-                atomic_dec(&pool->nr_ready);
-		// stats
-                cacheobjects_stat64_add(ktime_ns_delta(ktime_get(),
-                    now_ns), &connp->cum_wait_ns); // end wait time
-                cacheobjects_stat64_ktime(&connp->now_ns); // start use time
-                cacheobjects_stat64(&connp->nr_lookups);
-                return connp;
-            } else if ((state != CONN_FAILED) && (state != CONN_RETRY)) {
-                apd = false;
-            }
-        } //end list
-
-        // error paths
-        if (!apd && !list_empty(&pool->conn_list)) {
-            // resource busy
-	    // we wait as an exclusive thread since many threads will be
-	    // sharing wait condition which may lead to thundering herd
             read_unlock(&table->lock);
-            connp = ERR_PTR(-EBUSY);
-            cacheobjects_stat64(&pool->nr_slow_paths);
-            wait_event_interruptible_exclusive(pool->wq, 
-                (atomic_read(&pool->nr_ready) > 0));
-        } else if (apd) {
-            // all paths down
-            read_unlock(&table->lock);
-            pr_err("get connection node failed <%s:%u>, all paths down "
-                    "to node!", pool->ip, pool->port);
-            connp = ERR_PTR(-EHOSTDOWN);
-            goto exit;
+            // stats
+            cacheobjects_stat64_add(ktime_ns_delta(ktime_get(),
+                now_ns), &connp->cum_wait_ns); // end wait time
+            cacheobjects_stat64_ktime(&connp->now_ns); // start use time
+            cacheobjects_stat64(&connp->nr_lookups);
+            return connp;
+        } else if ((state != CONN_FAILED) && (state != CONN_RETRY)) {
+            apd = false;
         }
-    } while (true); // Fix me: did not find any timeout variant for exclusive
+    }
 
+    read_unlock(&table->lock);
+
+    if (!apd)
+        CONNTBL_ASSERT(0);
+
+    err = -EHOSTDOWN;
+    pr_err("get connection node failed "POOL_FMT", all paths down "
+        "to node!", POOL_ARGS(pool));
 exit:
-    return connp;
+    return (err == -ENOENT) ? NULL : ERR_PTR(err);
 }
 
 /*
@@ -566,23 +553,21 @@ exit:
  * -unlock connection and notify one waiting on pool wq
  */
 static void connection_put(struct cacheobj_conntable *table,
-        struct cacheobj_connection_node *connp, conn_op_t op)
+    struct cacheobj_connection_node *connp, conn_op_t op)
 {
     unsigned long state;
-   
+
     switch((state = atomic_long_read(&connp->state))) {
-    case CONN_ACTIVE:
-        {
-            struct cacheobj_connection_pool *pool = connp->pool;
-            cacheobj_connection_node_update_ktime(connp, op); // end use time
-            atomic_long_cmpxchg(&connp->state, state, CONN_READY);
-            atomic_inc(&pool->nr_ready);
-            if (waitqueue_active(&pool->wq))
-                wake_up_interruptible_nr(&pool->wq, 1);
-            break;
-        }
-    default:
-        CONNTBL_ASSERT(0);
+        case CONN_ACTIVE:
+            {
+                struct cacheobj_connection_pool *pool = connp->pool;
+                cacheobj_connection_node_update_ktime(connp, op); // end use time
+                atomic_long_cmpxchg(&connp->state, state, CONN_READY);
+                up(&pool->conn_sem);
+                break;
+            }
+        default:
+            CONNTBL_ASSERT(0);
     }
 }
 
@@ -592,7 +577,7 @@ static void connection_put(struct cacheobj_conntable *table,
 static int connectionpool_hashtable_destroy(struct cacheobj_conntable *table)
 {
     int bkt;
-    bool is_locked = true;
+    bool have_lock = true;
     size_t nr_items = 0, pools_left = 0;
     struct hlist_node *tmp;
     struct cacheobj_connection_pool *pool;
@@ -605,10 +590,8 @@ static int connectionpool_hashtable_destroy(struct cacheobj_conntable *table)
     hash_for_each_safe(table->buckets, bkt, tmp, pool, hentry) {
         pools_left++;
         // iterate connection list
-	// This is no op for dfc as it tears down connections and clears pool
-	// list prior hashtable destroy
         list_for_each_entry_safe(connp, tmp_list, &pool->conn_list, list_node) {
-            if (__connection_remove(table, connp, is_locked) == 0) {
+            if (__connection_remove(table, connp, have_lock) == 0) {
                 cacheobj_connection_node_destroy(connp);
                 nr_items++;
             }
@@ -664,8 +647,8 @@ static void connectionpool_hashtable_dump(struct cacheobj_conntable
             seq_printf(m, "%s:%u %s %u %llu %lu %lu %lu %lu %llu "
                     "%llu\n", connp->ip, connp->port,
                     conn_state_status(atomic_long_read(&connp->state)),
-                    connp->nr_retry_attempts, lookups, ~0UL, waitus, getus,
-		    putus, tx_mb, rx_mb);
+                    connp->nr_retry_attempts, lookups, 0UL, waitus, getus,
+                    putus, tx_mb, rx_mb);
         }
     }
 exit:

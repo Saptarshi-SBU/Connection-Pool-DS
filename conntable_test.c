@@ -47,7 +47,7 @@ MODULE_PARM_DESC(nr_conns, "Number of connections per node");
 /* put delay in ms (for testing waits) */
 static int put_delay_us = 0;
 module_param(put_delay_us, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-MODULE_PARM_DESC(put_delay_us, "put delay in ms");
+MODULE_PARM_DESC(put_delay_us, "put delay in us");
 
 /* nr of threads spawned for test */
 static int nr_lookup_threads = 1;

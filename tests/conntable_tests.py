@@ -10,7 +10,7 @@ import subprocess
 from time import sleep
 
 TESTMODULE='conntable_ktest.ko'
-OUTPUTDIR='/tmp/v2'
+OUTPUTDIR='/tmp/v1'
 TESTTIME=15
 BASE_THREADS=8
 MAX_THREADS=12
@@ -116,7 +116,7 @@ class ConntableUnitTests(unittest.TestCase):
 	self.runTest('test_006', nr_nodes=1, nr_conns=BASE_THREADS, nr_insert_threads=1,
                         nr_lookup_threads=MAX_THREADS, put_delay_us=0)
 
-    unittest.skip('skip test')
+    @unittest.skip('skip test')
     def test_007(self):
         """
             data structure unit test for multiple threads insertion and lookups,
@@ -125,7 +125,7 @@ class ConntableUnitTests(unittest.TestCase):
 	self.runTest('test_007', nr_nodes=1, nr_conns=BASE_THREADS, nr_insert_threads=1,
                         nr_lookup_threads=MAX_THREADS, put_delay_us=1000)
 
-    unittest.skip('skip test')
+    #@unittest.skip('skip test')
     def test_008(self):
         """
             data structure unit test for multiple threads insertion and lookups,

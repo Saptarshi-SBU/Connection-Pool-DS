@@ -70,7 +70,7 @@ static inline void cacheobjects_stat64_jiffies(unsigned long *now)
 
 static inline u64 cacheobjects_stat64_jiffies2usec(atomic64_t *stat)
 {
-	return jiffies64_to_nsecs(atomic64_read(stat))/1000UL;
+	return 0;//jiffies64_to_nsecs(atomic64_read(stat))/1000UL;
 }
 
 static inline void cacheobjects_stat64_ktime(ktime_t *now)
